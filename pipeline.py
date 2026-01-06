@@ -4,6 +4,9 @@ import re
 import logging
 import sys
 import traceback
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 # Configurar logging para ver errores
 logging.basicConfig(
@@ -252,8 +255,8 @@ def validar_fila(row, index):
         logging.error(f"Error validando fila {index}: {str(e)}")
         return False
 
-def procesar_csv(archivo_entrada, archivo_salida):
-    """Función principal para procesar el CSV"""
+def procesar_excel(archivo_entrada, archivo_salida):
+    """Función principal para procesar el CSV y generar Excel"""
     try:
         logging.info(f"Cargando archivo: {archivo_entrada}")
         
@@ -272,7 +275,7 @@ def procesar_csv(archivo_entrada, archivo_salida):
                 raise ValueError(f"Columna requerida no encontrada: {columna}")
         
         # Validar filas antes de procesar
-        logging.info("Validando datos...")
+        logging.info("Validando datos")
         for index, row in df.iterrows():
             validar_fila(row, index)
         
@@ -297,10 +300,52 @@ def procesar_csv(archivo_entrada, archivo_salida):
         for desarrollo, count in desarrollos_procesados.items():
             logging.info(f"  {desarrollo}: {count} filas")
         
+        # Crear DataFrame para la hoja BI (mantener todas las columnas originales más las nuevas)
+        df_bi = df.copy()
+        
+        # Asegurarse de que las columnas estén en el orden correcto para BI
+        columnas_bi = [
+            'id_venta', 'Marca', 'Etapa', 'Equivalencia', 'Desarrollo_Maestro', 
+            'Desarrollo', 'combinado', 'Etapa2', 'Unidad', 'Tipo', 'M2_Accion', 
+            'PrecioM2_Accion', 'PrecioVenta', 'Asesor', 'Zona', 'Int_Ext', 
+            'Eq', 'Cliente', 'F_Venta', 'Enganche', 'Cobrado', 
+            'PrecioVenta_Pagado__Saldo', 'Comision_DireccionCU', 'Estatus', 
+            'Cobrado_Enganche'
+        ]
+        columnas_existentes = [col for col in columnas_bi if col in df_bi.columns]
+        df_bi = df_bi[columnas_existentes]
+
+        # Crear DataFrame para la hoja JesusHerrera
+        df_jesus = pd.DataFrame()
+        
+        # Mapeo de columnas
+        df_jesus['MARCA'] = df['Marca']
+        df_jesus['ETAPA'] = df['Equivalencia']
+        df_jesus['DESARROLLO'] = df['Desarrollo_Maestro']
+        df_jesus['COMBINADO'] = df['Equivalencia'] + " " + df['Unidad'].astype(str)
+        df_jesus['ETAPA2'] = df['Etapa2']
+        df_jesus['UNIDAD'] = df['Unidad']
+        df_jesus['TIPO'] = df['Tipo']
+        df_jesus['M2 / ACCION'] = df['M2_Accion']
+        df_jesus['$ M2 / ACCION'] = df['PrecioM2_Accion']
+        df_jesus['$ VENTA'] = df['PrecioVenta']
+        df_jesus['ASESOR'] = df['Asesor']
+        df_jesus['ZONA'] = df['Zona']
+        df_jesus['INT / EXT'] = df['Int_Ext']
+        df_jesus['EQ'] = df['Eq']
+        df_jesus['CLIENTE'] = df['Cliente']
+        df_jesus['F. VENTA'] = df['F_Venta']
+        df_jesus['ENGANCHE'] = df['Enganche']
+        df_jesus['COBRADO'] = df['Cobrado']
+        df_jesus['SALDO'] = df['PrecioVenta_Pagado__Saldo']
+        df_jesus['COMISION DIRECCION (C/U)'] = df['Comision_DireccionCU']
+        df_jesus['ESTATUS'] = df['Estatus']
+        df_jesus['COBRADO - ENGANCHE'] = df['Cobrado_Enganche']
+        
         # Guardar el resultado
-        df.to_csv(archivo_salida, index=False, encoding='utf-8-sig')
-        logging.info(f"Transformación completada. Archivo guardado: {archivo_salida}")
-        logging.info(f"Resumen: {len(df)} filas procesadas")
+        # df.to_csv(archivo_salida, index=False, encoding='utf-8-sig')
+        # logging.info(f"Transformación completada. Archivo guardado: {archivo_salida}")
+        # logging.info(f"Resumen: {len(df)} filas procesadas")
         
         return True
         
@@ -390,7 +435,7 @@ if __name__ == "__main__":
 
         archivo_entrada = 'data/reporte-cierre-de-mes.csv'  # Cambiar por tu archivo de entrada
         archivo_salida = f"data/reporte-cierre-de-mes-transformado-{mes_str}-{year}.csv"
-        exito = procesar_csv(archivo_entrada, archivo_salida)
+        exito = procesar_excel(archivo_entrada, archivo_salida)
         
         if exito:
             print("Transformacion completada exitosamente.")
