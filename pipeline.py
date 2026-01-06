@@ -298,7 +298,7 @@ def procesar_csv(archivo_entrada, archivo_salida):
             logging.info(f"  {desarrollo}: {count} filas")
         
         # Guardar el resultado
-        df.to_csv(archivo_salida, index=False, encoding='utf-8')
+        df.to_csv(archivo_salida, index=False, encoding='utf-8-sig')
         logging.info(f"Transformación completada. Archivo guardado: {archivo_salida}")
         logging.info(f"Resumen: {len(df)} filas procesadas")
         
