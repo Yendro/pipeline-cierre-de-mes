@@ -154,7 +154,7 @@ MAPEO_ETAPAS_ESPECIALES = {
 }
 
 # Mapeo de formato para las columnas
-FORMATOS_COLUMNAS = {
+MAPEO_FORMATOS_COLUMNAS = {
     # Fechas
     'F_Venta': 'DD/MM/YYYY',
     'F. VENTA': 'DD/MM/YYYY',
@@ -331,7 +331,7 @@ def aplicar_formato(worksheet):
             for col in range(1, worksheet.max_column + 1)
         }
 
-        for nombre_columna, formato in FORMATOS_COLUMNAS.items():
+        for nombre_columna, formato in MAPEO_FORMATOS_COLUMNAS.items():
             if nombre_columna in encabezados:
                 col_idx = encabezados[nombre_columna]
                 for row in range(2, worksheet.max_row + 1):
