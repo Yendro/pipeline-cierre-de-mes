@@ -1,4 +1,5 @@
 import pandas as pd
+import datetime
 import re
 import logging
 import sys
@@ -376,10 +377,19 @@ if __name__ == "__main__":
     
     if pruebas_exitosas:
         logging.info("=== TODAS LAS PRUEBAS PASARON ===")
-        
-        archivo_entrada = 'data/reporte-cierre-mes.csv'  # Cambiar por tu archivo de entrada
-        archivo_salida = 'data/reporte-cierre-mes-transformado.csv'  # Cambiar por tu archivo de salida
-        
+
+        def obtener_mes_anterior():
+            date = datetime.date.today()
+
+            # Ir al primer día del mes actual y retroceder un día
+            ultimo_dia_mes_anterior = date.replace(day=1) - datetime.timedelta(days = 1)
+            return ultimo_dia_mes_anterior.month, ultimo_dia_mes_anterior.year
+
+        mes, year = obtener_mes_anterior()
+        mes_str = f"{mes:02d}"
+
+        archivo_entrada = 'data/reporte-cierre-de-mes.csv'  # Cambiar por tu archivo de entrada
+        archivo_salida = f"data/reporte-cierre-de-mes-transformado-{mes_str}-{year}.csv"
         exito = procesar_csv(archivo_entrada, archivo_salida)
         
         if exito:
