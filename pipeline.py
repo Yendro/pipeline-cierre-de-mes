@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 
 # Diccionario de mapeo para desarrollos
-mapeo_desarrollos = {
+MAPEO_DESARROLLOS = {
     'Ciudad Deportiva': {
         'equivalencia_base': 'CD SUBC',
         'desarrollo_maestro': 'CIUDAD DEPORTIVA',
@@ -144,13 +144,46 @@ mapeo_desarrollos = {
 }
 
 # Mapeo especial para etapas no numéricas
-mapeo_etapas_especiales = {
+MAPEO_ETAPAS_ESPECIALES = {
     'Puerto Telchac': {
         'Carey': "9",
         'Arena': '19',
         'Coral': '20', 
         'Arrecife': '22'
     }
+}
+
+# Mapeo de formato para las columnas
+FORMATOS_COLUMNAS = {
+    # Fechas
+    'F_Venta': 'DD/MM/YYYY',
+    'F. VENTA': 'DD/MM/YYYY',
+
+    # Numéricos
+    'M2_Accion': '#,##0.00',
+    'M2 / ACCION': '#,##0.00',
+
+    # Moneda
+    'PrecioM2_Accion': '"$"#,##0.00',
+    '$ M2 / ACCION': '"$"#,##0.00',
+
+    'PrecioVenta': '"$"#,##0.00',
+    '$ VENTA': '"$"#,##0.00',
+
+    'Enganche': '"$"#,##0.00',
+    'ENGANCHE': '"$"#,##0.00',
+
+    'Cobrado': '"$"#,##0.00',
+    'COBRADO': '"$"#,##0.00',
+
+    'PrecioVenta_Pagado__Saldo': '"$"#,##0.00',
+    'SALDO': '"$"#,##0.00',
+
+    'Comision_DireccionCU': '"$"#,##0.00',
+    'COMISION DIRECCION (C/U)': '"$"#,##0.00',
+
+    'Cobrado_Enganche': '"$"#,##0.00',
+    'COBRADO - ENGANCHE': '"$"#,##0.00'
 }
 
 def extraer_tipo_y_numero_etapa(etapa, desarrollo):
@@ -162,9 +195,9 @@ def extraer_tipo_y_numero_etapa(etapa, desarrollo):
         etapa_str = str(etapa).strip()
         
         # Primero verificar si hay un mapeo especial para esta combinación desarrollo-etapa
-        if desarrollo in mapeo_etapas_especiales:
-            if etapa_str in mapeo_etapas_especiales[desarrollo]:
-                return None, mapeo_etapas_especiales[desarrollo][etapa_str]
+        if desarrollo in MAPEO_ETAPAS_ESPECIALES:
+            if etapa_str in MAPEO_ETAPAS_ESPECIALES[desarrollo]:
+                return None, MAPEO_ETAPAS_ESPECIALES[desarrollo][etapa_str]
         
         # Extraer tipo (letras) y número
         tipo_match = re.match(r'^([A-Za-z]+)', etapa_str)
@@ -183,11 +216,11 @@ def extraer_tipo_y_numero_etapa(etapa, desarrollo):
 def generar_equivalencia(etapa, desarrollo):
     """Genera la equivalencia según las reglas especificadas"""
     try:
-        if desarrollo not in mapeo_desarrollos:
+        if desarrollo not in MAPEO_DESARROLLOS:
             logging.warning(f"Desarrollo no encontrado en mapeo: '{desarrollo}'")
             return None
         
-        desarrollo_data = mapeo_desarrollos[desarrollo]
+        desarrollo_data = MAPEO_DESARROLLOS[desarrollo]
         formato = desarrollo_data.get('formato', 'base_espacio_numero')
         
         # Caso especial para Playaviva Apartments
@@ -229,8 +262,8 @@ def generar_equivalencia(etapa, desarrollo):
 def obtener_desarrollo_maestro(desarrollo):
     """Obtiene el desarrollo maestro del mapeo"""
     try:
-        if desarrollo in mapeo_desarrollos:
-            return mapeo_desarrollos[desarrollo]['desarrollo_maestro']
+        if desarrollo in MAPEO_DESARROLLOS:
+            return MAPEO_DESARROLLOS[desarrollo]['desarrollo_maestro']
         else:
             logging.warning(f"Desarrollo maestro no encontrado para: '{desarrollo}'")
             return str(desarrollo).upper()
@@ -247,7 +280,7 @@ def validar_fila(row, index):
             return False
             
         desarrollo = str(row['Desarrollo']).strip()
-        if desarrollo not in mapeo_desarrollos:
+        if desarrollo not in MAPEO_DESARROLLOS:
             logging.warning(f"Fila {index}: Desarrollo '{desarrollo}' no esta mapeado")
             
         return True
@@ -277,7 +310,7 @@ def aplicar_formato(worksheet):
             cell.alignment = alignment
             cell.border = border
             # Convertir a mayúsculas
-            cell.value = str(cell.value).upper() if cell.value else ""
+            # cell.value = str(cell.value).upper() if cell.value else ""
         
         # Ajustar el ancho de las columnas
         for column_cells in worksheet.columns:
@@ -291,11 +324,23 @@ def aplicar_formato(worksheet):
                     pass
             adjusted_width = (max_length + 2) * 1.2
             worksheet.column_dimensions[column].width = min(adjusted_width, 50)
+
+        # Aplicar formatos por columna (datos)
+        encabezados = {
+            worksheet.cell(row=1, column=col).value: col
+            for col in range(1, worksheet.max_column + 1)
+        }
+
+        for nombre_columna, formato in FORMATOS_COLUMNAS.items():
+            if nombre_columna in encabezados:
+                col_idx = encabezados[nombre_columna]
+                for row in range(2, worksheet.max_row + 1):
+                    worksheet.cell(row=row, column=col_idx).number_format = formato
             
-        logging.info("Formato aplicado a la hoja JesusHerrera")
+        logging.info(f"Formato aplicado al archivo {worksheet}")
         
     except Exception as e:
-        logging.error(f"Error aplicando formato a JesusHerrera: {str(e)}")
+        logging.error(f"Error aplicando formato: {str(e)}")
         logging.debug(traceback.format_exc())
 
 def procesar_excel(archivo_entrada, archivo_salida):
@@ -323,7 +368,15 @@ def procesar_excel(archivo_entrada, archivo_salida):
             validar_fila(row, index)
         
         # Aplicar las transformaciones
-        logging.info("Aplicando transformaciones...")
+        logging.info("Aplicando transformaciones.")
+
+        # Asegurar fechas reales (NO texto)
+        if 'F_Venta' in df.columns:
+            df['F_Venta'] = pd.to_datetime(
+                df['F_Venta'],
+                errors='coerce',
+                format='mixed'
+            )
         
         df['Equivalencia'] = df.apply(
             lambda row: generar_equivalencia(row['Etapa'], row['Desarrollo']), 
@@ -343,10 +396,10 @@ def procesar_excel(archivo_entrada, archivo_salida):
         for desarrollo, count in desarrollos_procesados.items():
             logging.info(f"  {desarrollo}: {count} filas")
         
-        # Crear DataFrame para la hoja BI (mantener todas las columnas originales más las nuevas)
+        # Crear DataFrame para la hoja BI
         df_bi = df.copy()
         
-        # Asegurarse de que las columnas estén en el orden correcto para BI
+        # Organizar las columnas de BI
         columnas_bi = [
             'id_venta', 'Marca', 'Etapa', 'Equivalencia', 'Desarrollo_Maestro', 
             'Desarrollo', 'combinado', 'Etapa2', 'Unidad', 'Tipo', 'M2_Accion', 
