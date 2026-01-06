@@ -257,6 +257,46 @@ def validar_fila(row, index):
 
 def aplicar_formato_jesus_herrera(worksheet):
     """Aplica formato a la hoja JesusHerrera"""
+    try:
+        # Definir el estilo para los encabezados
+        fill = PatternFill(start_color="0070C0", end_color="0070C0", fill_type="solid")
+        font = Font(bold=True, color="FFFFFF")
+        alignment = Alignment(horizontal="center", vertical="center")
+        border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # Aplicar formato a los encabezados
+        for col in range(1, worksheet.max_column + 1):
+            cell = worksheet.cell(row=1, column=col)
+            cell.fill = fill
+            cell.font = font
+            cell.alignment = alignment
+            cell.border = border
+            # Convertir a mayúsculas
+            cell.value = str(cell.value).upper() if cell.value else ""
+        
+        # Ajustar el ancho de las columnas
+        for column_cells in worksheet.columns:
+            max_length = 0
+            column = column_cells[0].column_letter
+            for cell in column_cells:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = (max_length + 2) * 1.2
+            worksheet.column_dimensions[column].width = min(adjusted_width, 50)
+            
+        logging.info("Formato aplicado a la hoja JesusHerrera")
+        
+    except Exception as e:
+        logging.error(f"Error aplicando formato a JesusHerrera: {str(e)}")
+        logging.debug(traceback.format_exc())
 
 def procesar_excel(archivo_entrada, archivo_salida):
     """Función principal para procesar el CSV y generar Excel"""
@@ -446,12 +486,13 @@ if __name__ == "__main__":
         mes, year = obtener_mes_anterior()
         mes_str = f"{mes:02d}"
 
-        archivo_entrada = 'data/reporte-cierre-de-mes.csv'  # Cambiar por tu archivo de entrada
-        archivo_salida = f"data/reporte-cierre-de-mes-transformado-{mes_str}-{year}.csv"
+        archivo_entrada = 'data/reporte-cierre-de-mes.csv'
+        archivo_salida = f"data/reporte-cierre-de-mes-transformado-{mes_str}-{year}.xlsx"
         exito = procesar_excel(archivo_entrada, archivo_salida)
         
         if exito:
             print("Transformacion completada exitosamente.")
+            print(f"Archivo Excel generado: {archivo_salida}")
             print("Revisa 'transformacion_errores.log' para ver cualquier advertencia.")
         else:
             print("Error en la transformacion. Revisa el log para más detalles.")
