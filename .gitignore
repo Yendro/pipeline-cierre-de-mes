@@ -5,6 +5,7 @@
 # Build
 data/*
 !data/content.md
+!data/Ventas-CierreDeMes.sql
 
 # Logs
 transformacion_errores.log
