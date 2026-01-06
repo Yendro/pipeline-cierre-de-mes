@@ -1,5 +1,5 @@
 .venv
 .vscode
-/data/reporte-cierre-mes-transformado.csv
-/data/reporte-cierre-mes.csv
+/data
 transformacion_errores.log
+**__pycache__

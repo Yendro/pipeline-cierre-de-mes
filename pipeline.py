@@ -371,7 +371,7 @@ def probar_casos():
 # Ejemplo de uso
 if __name__ == "__main__":
     # Probar casos primero
-    logging.info("===> INICIANDO PRUEBAS ===")
+    logging.info("=== INICIANDO PRUEBAS ===")
     pruebas_exitosas = probar_casos()
     
     if pruebas_exitosas:
@@ -388,6 +388,6 @@ if __name__ == "__main__":
         else:
             print("Error en la transformacion. Revisa el log para más detalles.")
     else:
-        logging.error("=== ALGUNAS PRUEBAS FALLARON ===")
+        logging.error("=== FALLA EN LAS PRUEBAS ===")
         print("Algunas pruebas fallaron. Revisa el log para más detalles.")
         print("No se procesara el archivo CSV hasta que todas las pruebas pasen.")
