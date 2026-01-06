@@ -255,18 +255,18 @@ def validar_fila(row, index):
         logging.error(f"Error validando fila {index}: {str(e)}")
         return False
 
-def aplicar_formato_jesus_herrera(worksheet):
-    """Aplica formato a la hoja JesusHerrera"""
+def aplicar_formato(worksheet):
+    """Aplica formato a las hojas"""
     try:
         # Definir el estilo para los encabezados
         fill = PatternFill(start_color="0070C0", end_color="0070C0", fill_type="solid")
-        font = Font(bold=True, color="FFFFFF")
+        font = Font(bold=True, color="000000")
         alignment = Alignment(horizontal="center", vertical="center")
         border = Border(
             left=Side(style='thin'),
             right=Side(style='thin'),
             top=Side(style='thin'),
-            bottom=Side(style='thin')
+            bottom=Side(style='thin'),
         )
         
         # Aplicar formato a los encabezados
@@ -394,7 +394,9 @@ def procesar_excel(archivo_entrada, archivo_salida):
             # Obtener el workbook y aplicar formato a la hoja JesusHerrera
             workbook = writer.book
             worksheet_jesus = workbook['JesusHerrera']
-            aplicar_formato_jesus_herrera(worksheet_jesus)
+            aplicar_formato(worksheet_jesus)
+            worksheet_bi = workbook['BI']
+            aplicar_formato(worksheet_bi)
         
         logging.info(f"Transformación completada. Archivo guardado: {archivo_salida}")
         logging.info(f"Resumen: {len(df)} filas procesadas")
