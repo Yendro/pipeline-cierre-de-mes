@@ -255,6 +255,9 @@ def validar_fila(row, index):
         logging.error(f"Error validando fila {index}: {str(e)}")
         return False
 
+def aplicar_formato_jesus_herrera(worksheet):
+    """Aplica formato a la hoja JesusHerrera"""
+
 def procesar_excel(archivo_entrada, archivo_salida):
     """Función principal para procesar el CSV y generar Excel"""
     try:
@@ -341,12 +344,22 @@ def procesar_excel(archivo_entrada, archivo_salida):
         df_jesus['COMISION DIRECCION (C/U)'] = df['Comision_DireccionCU']
         df_jesus['ESTATUS'] = df['Estatus']
         df_jesus['COBRADO - ENGANCHE'] = df['Cobrado_Enganche']
+
+        # Crear el archivo Excel
+        with pd.ExcelWriter(archivo_salida, engine='openpyxl') as writer:
+
+            df_bi.to_excel(writer, sheet_name='BI', index=False)
+            df_jesus.to_excel(writer, sheet_name='JesusHerrera', index=False)
+            
+            # Obtener el workbook y aplicar formato a la hoja JesusHerrera
+            workbook = writer.book
+            worksheet_jesus = workbook['JesusHerrera']
+            aplicar_formato_jesus_herrera(worksheet_jesus)
         
-        # Guardar el resultado
-        # df.to_csv(archivo_salida, index=False, encoding='utf-8-sig')
-        # logging.info(f"Transformación completada. Archivo guardado: {archivo_salida}")
-        # logging.info(f"Resumen: {len(df)} filas procesadas")
-        
+        logging.info(f"Transformación completada. Archivo guardado: {archivo_salida}")
+        logging.info(f"Resumen: {len(df)} filas procesadas")
+        logging.info(f"Hojas creadas: 'BI' ({len(df_bi)} filas) y 'JesusHerrera' ({len(df_jesus)} filas)")
+
         return True
         
     except FileNotFoundError:
