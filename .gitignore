@@ -1,5 +1,13 @@
+# Envirioments
 .venv
 .vscode
-/data
+
+# Build
+data/*
+!data/content.md
+
+# Logs
 transformacion_errores.log
+
+# Cache
 **__pycache__
