@@ -1,22 +1,22 @@
-# Month-End Sales Pipeline
+# Pipeline de ventas de fin de mes
 
-## Install
+## Instalación
 
-### Clone repository
+### Clonar repositorio
 
 ```bash
 git clone [URL-del-repositorio]
 cd pipeline-cierre-de-mes
 ```
 
-### Create venv
+### Crear venv
 
 ```bash
 python -m venv .venv
 .venv/bin/activate
 ```
 
-### Dependencies
+### Dependencias
 
 ```bash
 pip install -r requirements.txt
@@ -26,40 +26,69 @@ OR
 pip install pandas openpyxl
 ```
 
-## Project Structure
+## Estructura del proyecto
 
 ```bash
 pipeline-cierre-de-mes/
 ├── pipeline.py                     # Script
-├── requirements.txt                # Python dependencies
+├── requirements.txt                # Dependencias de Python
 ├── README.md
 ├── .gitignore
 ├── LICENSE
-├── transformacion_errores.log      # Error log (automatically generated)
+├── transformacion_errores.log      # Log de errores e información (generado automáticamente)
 ├── data/
-│   ├── reporte-cierre-de-mes.csv                           # Input file
-│   ├── reporte-cierre-de-mes-transformado-MM-YYYY.xlsx     # Output file
-│   └── Ventas-CierreDeMes.sql                              # BigQuery SQL file
+│   ├── reporte-cierre-de-mes.csv                           # Archivo de entrada
+│   ├── reporte-cierre-de-mes-transformado-MM-YYYY.xlsx     # Archivo de salida
+│   └── Ventas-CierreDeMes.sql                              # Consulta SQL de BigQuery
 └──
 ```
 
-## Add new elements to map static variables
+## Agregar nuevos elementos a las variables estaticas
 
-### Add developments
+### Agregar elementos al mapeo de desarrollos
 
-Tutorial
+El mapeo de desarrollos sirve para poder generar los datos en **[Desarrollos_Maestro]** y **[Equivalencia]**, los cuales son una versión para ubicar de forma más directa los desarrollos.  
+Para agregar un nuevo desarrollo, se debe de primero escribir el item con el nombre de desarrollo justo como sale en la columna **[Desarrollo]**.
+
+El script contiene un diccionario extenso (`MAPEO_DESARROLLOS`) que define:
+
+- `'equivalencia_base'`: Esta es la clave de texto que se muestra en los datos de la columna **[Equivalencia]**. Es una clave que puede concatenar el _número_ que porían contener algunos datos en la columna **[Etapa]**.
+
+- `'desarrollo_maestro'`: Es el nombre estandarizado de los desarrollos. Se usa para identificar desarrollos de una misma zona.
+
+- `'formato'`: Es el patrón para generar la equivalencia completa. Esto determina la forma en la que se van a concatenar los datos en `'equivalencia_base'` y los datos en **[Etapa]**.
+
+Ejemplo de nuevo desarrollo:
 
 ```python
 MAPEO_DESARROLLOS = {
-    'Development_name': {                           # New item
-        'equivalencia_base': 'key_name',            # e.g.: ABC DE
-        'desarrollo_maestro': 'UPPER_KEY_NAME',     # e.g.: DEVELOPMENT
-        'formato': 'base_espacio_numero'            # solo_base, base_numero
+    'Nombre_Desarrollo': {
+        'equivalencia_base': 'CLAVE',        # e.g.: ABC DE
+        'desarrollo_maestro': 'NOMBRE_MAYUSCULAS',
+        'formato': 'base_espacio_numero'     # solo_base, base_numero
     }
 }
+df['Etapa'] = 'E123'
 ```
 
-### Add special stages
+> El resultado de esto sería:
+
+| Etapa | Desarrollo_Maestro | Equivalencia |
+| ----- | ------------------ | ------------ |
+| E123  | NOMBRE_MAYUSCULAS  | CLAVE 123    |
+
+El `'formato'` puede tener los valores `'base_numero'` y `'solo_base'` también. Usando el ejemplo anterior:
+
+**[Equivalencia]**  
+`'base_numero' = CLAVE123`  
+`'solo_base' = CLAVE`
+
+### Agregar desarrollos con formatos especiales
+
+especial_playaviva: Caso especial para Playaviva Apartments
+
+Mapeo Especial de Etapas
+Para algunos desarrollos (como "Puerto Telchac"), existe un mapeo especial que convierte nombres de etapas a números (ej: "Coral" → "20").
 
 Para algunos desarrollos (como "Puerto Telchac"), existe un mapeo especial que convierte nombres de etapas a números (ej: "Coral" → "20").
 
